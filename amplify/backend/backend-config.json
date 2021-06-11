@@ -24,5 +24,11 @@
         }
       }
     }
+  },
+  "storage": {
+    "noteappbucket": {
+      "service": "S3",
+      "providerPlugin": "awscloudformation"
+    }
   }
 }
