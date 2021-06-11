@@ -1,7 +1,8 @@
 import React from "react";
+import { withAuthenticator, AmplifySignOut } from "@aws-amplify/ui-react";
 import "./App.css";
 
-function App() {
+const App: React.FC = () => {
   return (
     <div className="App">
       <header className="App-header">
@@ -9,9 +10,10 @@ function App() {
       </header>
       <main>
         <h4>Hello AWS!</h4>
+        <AmplifySignOut />
       </main>
     </div>
   );
-}
+};
 
-export default App;
+export default withAuthenticator(App);
