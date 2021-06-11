@@ -27,8 +27,6 @@ const useNotes = () => {
       })
     );
 
-    console.log(`updatedNotes: `, updatedNotes);
-
     if (false === statusRef.current.willUnmount) {
       setNotes(updatedNotes);
     }

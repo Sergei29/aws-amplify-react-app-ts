@@ -36,8 +36,8 @@
   padding: 0 16px;
   display: flex;
   flex-wrap: wrap;
-  row-gap: 4px;
-  column-gap: 4px;
+  row-gap: 8px;
+  column-gap: 8px;
 }
 
 .notesList__noteItem {
@@ -46,7 +46,11 @@
   justify-content: space-between;
   background-color: #eaeaea;
   padding: 2px;
-  width: 400px;
+  width: 300px;
+  border-radius: 2px;
+}
+.notesList__noteItem:last-child {
+  margin-right: auto;
 }
 
 .notesList__noteItem > h4,

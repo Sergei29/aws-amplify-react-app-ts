@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Storage } from "aws-amplify";
 import { withAuthenticator, AmplifySignOut } from "@aws-amplify/ui-react";
 import useNotes from "./hooks/useNotes";
@@ -49,9 +49,7 @@ const App: React.FC = () => {
     objEvent.preventDefault();
     createNote(formData, handleResetForm);
   };
-  useEffect(() => {
-    console.log(`notes: `, notes);
-  }, [notes]);
+
   return (
     <div className="App">
       <header className="App-header">
@@ -97,7 +95,7 @@ const App: React.FC = () => {
               >
                 <h4>{objNote.name}</h4>
                 {objNote.image && (
-                  <img src={objNote.image} style={{ width: 400 }} alt="note" />
+                  <img src={objNote.image} style={{ width: 300 }} alt="note" />
                 )}
                 <p>{objNote.description}</p>
 
