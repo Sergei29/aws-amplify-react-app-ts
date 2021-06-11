@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { API } from "aws-amplify";
+import { API, Storage } from "aws-amplify";
 import { listNotes } from "../../graphql/queries";
 import {
   createNote as createNoteMutation,
@@ -15,8 +15,22 @@ const useNotes = () => {
     const apiData: Record<string, any> = await API.graphql({
       query: listNotes,
     });
-    if (true === statusRef.current.willUnmount) {
-      setNotes(apiData.data.listNotes.items);
+    const notesFromAPI: Record<string, any>[] = apiData.data.listNotes.items;
+
+    const updatedNotes = await Promise.all(
+      notesFromAPI.map(async (objNote) => {
+        if (objNote.image) {
+          const image = await Storage.get(objNote.image);
+          objNote.image = image;
+        }
+        return objNote;
+      })
+    );
+
+    console.log(`updatedNotes: `, updatedNotes);
+
+    if (false === statusRef.current.willUnmount) {
+      setNotes(updatedNotes);
     }
   }, []);
 
@@ -25,11 +39,21 @@ const useNotes = () => {
     funcCallbackOnSubmit: () => void
   ) => {
     if (!formData.name || !formData.description) return;
+    let objFormData = { ...formData };
     await API.graphql({
       query: createNoteMutation,
       variables: { input: formData },
     });
-    setNotes([...notes, formData]);
+
+    if (formData.image) {
+      const image = await Storage.get(formData.image);
+      objFormData = { ...objFormData, image: image as string };
+    }
+
+    setNotes((prevNotes) => ({
+      ...prevNotes,
+      ...objFormData,
+    }));
     funcCallbackOnSubmit();
   };
 
@@ -50,7 +74,7 @@ const useNotes = () => {
     };
   }, [fetchNotes]);
 
-  return { notes, createNote, deleteNote };
+  return { notes, createNote, deleteNote, fetchNotes };
 };
 
 export default useNotes;

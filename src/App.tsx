@@ -1,21 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Storage } from "aws-amplify";
 import { withAuthenticator, AmplifySignOut } from "@aws-amplify/ui-react";
 import useNotes from "./hooks/useNotes";
 import "./App.css";
 
-export type FormStateType = Readonly<{ name: string; description: string }>;
+export type FormStateType = Readonly<{
+  name: string;
+  description: string;
+  image: string;
+}>;
 type InputChangeEvent = React.ChangeEvent<
   HTMLInputElement | HTMLTextAreaElement
 >;
-const initialFormState: FormStateType = { name: "", description: "" };
+const initialFormState: FormStateType = {
+  name: "",
+  description: "",
+  image: "",
+};
 
 const App: React.FC = () => {
   const [formData, setFormData] = useState<FormStateType>(initialFormState);
-  const { notes, createNote, deleteNote } = useNotes();
+  const { notes, createNote, deleteNote, fetchNotes } = useNotes();
 
-  const handleChange = (objEvent: InputChangeEvent) => {
-    const { name, value } = objEvent.target;
-    setFormData((prevState) => ({
+  const handleChange = async (objEvent: InputChangeEvent) => {
+    const { name, value, type } = objEvent.target;
+    if ("file" === type) {
+      const { files } = objEvent.target as HTMLInputElement;
+      if (files && files[0]) {
+        const strFilename = files[0].name;
+        setFormData((prevState) => ({
+          ...prevState,
+          image: strFilename,
+        }));
+        await Storage.put(strFilename, files[0]);
+        return await fetchNotes();
+      }
+      return;
+    }
+    return setFormData((prevState) => ({
       ...prevState,
       [name]: value,
     }));
@@ -27,7 +49,9 @@ const App: React.FC = () => {
     objEvent.preventDefault();
     createNote(formData, handleResetForm);
   };
-
+  useEffect(() => {
+    console.log(`notes: `, notes);
+  }, [notes]);
   return (
     <div className="App">
       <header className="App-header">
@@ -54,6 +78,9 @@ const App: React.FC = () => {
               value={formData.description}
             />
           </div>
+          <div>
+            <input type="file" name="image" onChange={handleChange} />
+          </div>
           <div className="noteForm__buttonGroup">
             <button type="submit">submit</button>
             <button type="reset" onClick={handleResetForm}>
@@ -62,18 +89,23 @@ const App: React.FC = () => {
           </div>
         </form>
         <div className="notesList">
-          {notes.map((objNote) => (
-            <div
-              key={objNote.id || objNote.name}
-              className="notesList__noteItem"
-            >
-              <h4>{objNote.name}</h4>
-              <p>{objNote.description}</p>
-              <button onClick={() => deleteNote({ id: objNote.id })}>
-                Delete note
-              </button>
-            </div>
-          ))}
+          {notes &&
+            notes.map((objNote) => (
+              <div
+                key={objNote.id || objNote.name}
+                className="notesList__noteItem"
+              >
+                <h4>{objNote.name}</h4>
+                {objNote.image && (
+                  <img src={objNote.image} style={{ width: 400 }} alt="note" />
+                )}
+                <p>{objNote.description}</p>
+
+                <button onClick={() => deleteNote({ id: objNote.id })}>
+                  Delete note
+                </button>
+              </div>
+            ))}
         </div>
         <AmplifySignOut />
       </main>
